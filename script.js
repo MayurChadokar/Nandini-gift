@@ -50,6 +50,43 @@ class Paper {
       }
     })
 
+    // Touch support for mobile devices
+    document.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      if(!t) return;
+      if(!this.rotating) {
+        this.mouseX = t.clientX;
+        this.mouseY = t.clientY;
+        this.velX = this.mouseX - this.prevMouseX;
+        this.velY = this.mouseY - this.prevMouseY;
+      }
+
+      const dirX = t.clientX - this.mouseTouchX;
+      const dirY = t.clientY - this.mouseTouchY;
+      const dirLength = Math.sqrt(dirX*dirX+dirY*dirY) || 1;
+      const dirNormalizedX = dirX / dirLength;
+      const dirNormalizedY = dirY / dirLength;
+
+      const angle = Math.atan2(dirNormalizedY, dirNormalizedX);
+      let degrees = 180 * angle / Math.PI;
+      degrees = (360 + Math.round(degrees)) % 360;
+      if(this.rotating) {
+        this.rotation = degrees;
+      }
+
+      if(this.holdingPaper) {
+        if(!this.rotating) {
+          this.currentPaperX += this.velX;
+          this.currentPaperY += this.velY;
+        }
+        this.prevMouseX = this.mouseX;
+        this.prevMouseY = this.mouseY;
+
+        paper.style.transform = `translateX(${this.currentPaperX}px) translateY(${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
+        e.preventDefault();
+      }
+    }, {passive: false});
+
     paper.addEventListener('mousedown', (e) => {
       if(this.holdingPaper) return; 
       this.holdingPaper = true;
@@ -67,7 +104,30 @@ class Paper {
         this.rotating = true;
       }
     });
+    // Touch start for mobile
+    paper.addEventListener('touchstart', (e) => {
+      if(this.holdingPaper) return;
+      this.holdingPaper = true;
+      paper.style.zIndex = highestZ;
+      highestZ += 1;
+      const t = e.touches[0];
+      if(t) {
+        this.mouseTouchX = t.clientX;
+        this.mouseTouchY = t.clientY;
+        this.prevMouseX = t.clientX;
+        this.prevMouseY = t.clientY;
+        this.mouseX = t.clientX;
+        this.mouseY = t.clientY;
+      }
+      e.preventDefault();
+    }, {passive: false});
+
     window.addEventListener('mouseup', () => {
+      this.holdingPaper = false;
+      this.rotating = false;
+    });
+    // Touch end for mobile
+    window.addEventListener('touchend', () => {
       this.holdingPaper = false;
       this.rotating = false;
     });
