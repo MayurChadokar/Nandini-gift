@@ -222,3 +222,16 @@ audioPlayer.addEventListener('ended', () => {
   audioPlayer.currentTime = 0;
   progressBar.style.width = '0%';
 });
+
+// Image fallback: hide or replace broken images inside papers
+document.querySelectorAll('.paper.image img').forEach(img => {
+  img.addEventListener('error', () => {
+    // replace with a known existing image if available
+    const fallback = 'images/bg.jpeg';
+    if (img.src.indexOf(fallback) === -1) {
+      img.src = fallback;
+    } else {
+      img.style.display = 'none';
+    }
+  });
+});
