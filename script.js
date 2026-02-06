@@ -90,8 +90,6 @@ const progressContainer = document.querySelector('.progress-bar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 let isPlaying = false;
-let firstClickOnMobile = true;
-let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // Format time function
 function formatTime(seconds) {
@@ -102,55 +100,39 @@ function formatTime(seconds) {
 }
 
 // Click on cover to play/pause
-songCover.addEventListener('click', handleCoverClick);
-
-// Click on play button to play/pause
-playBtn.addEventListener('click', handlePlayClick);
-
-function handleCoverClick() {
-  if (isMobile && firstClickOnMobile) {
-    firstClickOnMobile = false;
-    playAuto();
-  } else {
-    togglePlay();
-  }
-}
-
-function handlePlayClick() {
-  if (isMobile && firstClickOnMobile) {
-    firstClickOnMobile = false;
-    playAuto();
-  } else {
-    togglePlay();
-  }
-}
-
-function playAuto() {
-  audioPlayer.play().then(() => {
+songCover.addEventListener('click', () => {
+  if (!isPlaying) {
+    audioPlayer.play().catch(err => console.log('Play error:', err));
     isPlaying = true;
     playBtn.classList.add('playing');
     songCover.classList.add('playing');
     playBtn.innerHTML = '<span class="play-icon">⏸</span>';
-  }).catch(err => {
-    console.log('Auto-play error:', err);
-  });
-}
-
-function togglePlay() {
-  if (isPlaying) {
+  } else {
     audioPlayer.pause();
     isPlaying = false;
     playBtn.classList.remove('playing');
     songCover.classList.remove('playing');
     playBtn.innerHTML = '<span class="play-icon">▶</span>';
-  } else {
-    audioPlayer.play();
+  }
+});
+
+// Click on play button to play/pause
+playBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!isPlaying) {
+    audioPlayer.play().catch(err => console.log('Play error:', err));
     isPlaying = true;
     playBtn.classList.add('playing');
     songCover.classList.add('playing');
     playBtn.innerHTML = '<span class="play-icon">⏸</span>';
+  } else {
+    audioPlayer.pause();
+    isPlaying = false;
+    playBtn.classList.remove('playing');
+    songCover.classList.remove('playing');
+    playBtn.innerHTML = '<span class="play-icon">▶</span>';
   }
-}
+});
 
 // Update progress bar when audio plays
 audioPlayer.addEventListener('timeupdate', () => {
